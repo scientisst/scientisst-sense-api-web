@@ -1,6 +1,6 @@
-class Frame {
+export default class Frame {
     digital: Array<number> = [0, 0, 0, 0];
-    seq: number;
+    seq: number = -1;
     a: Array<number>;
     mv: Array<number>;
 
