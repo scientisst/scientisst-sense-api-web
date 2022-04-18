@@ -1,21 +1,10 @@
 {
-  "name": "scientisst",
+  "name": "scientisst-sense-api-web",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "prepublish": "npm run build",
-    "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "typescript": "^4.6.3"
-  },
-  "dependencies": {
-    "@types/w3c-web-serial": "^1.0.2",
-    "web-serial-polyfill": "^1.0.13"
-  }
+  "description": "The ScientISST SENSE Web API using Javascript",
+  "main": "src/scientisst.js",
+  "type": "module",
+  "scripts": {},
+  "author": "Afonso Raposo",
+  "license": "MIT"
 }
