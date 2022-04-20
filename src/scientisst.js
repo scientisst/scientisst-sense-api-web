@@ -255,7 +255,7 @@ export default class ScientISST {
             throw "ScientISST not live";
         }
 
-        const frames = new ArrayBuffer(this.#numFrames);
+        const frames = new Array(this.#numFrames);
 
         const result = await this.recv(this.#bytesToRead);
 
