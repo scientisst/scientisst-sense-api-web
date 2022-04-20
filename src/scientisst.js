@@ -115,6 +115,7 @@ export default class ScientISST {
         }
 
         this.clear();
+        this.connected = false;
         console.log("ScientISST Sense DISCONNECTED");
     }
 
