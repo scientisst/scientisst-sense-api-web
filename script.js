@@ -13,7 +13,11 @@ let scientisst;
 if ("serial" in navigator) {
     connectBtn.addEventListener("click", async () => {
         scientisst = await ScientISST.requestPort();
-        await scientisst.connect();
+        try {
+            await scientisst.connect();
+        } catch (e) {
+            console.log(e);
+        }
     });
 
     disconnectBtn.addEventListener("click", async () => {

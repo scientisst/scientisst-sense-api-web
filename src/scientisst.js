@@ -1,9 +1,11 @@
 import Frame from "./frame.js";
 import EspAdcCalChars from "./esp_adc/esp_adc.js";
 
+import { sleep, bytesArray } from './utils.js'
+
 const API_SCIENTISST = 2;
 
-const TIMEOUT_IN_MILLISECONDS = 2000;
+const TIMEOUT_IN_MILLISECONDS = 3000;
 
 const AI1 = 1;
 const AI2 = 2;
@@ -17,25 +19,34 @@ const AX2 = 8;
 const MAX_BUFFER_SIZE = 4096;
 
 export default class ScientISST {
-    connected = false;
+    #port;
 
-    packetSize = 0;
-    sampleRate = 0;
-    chs = [];
-    numChs = 0;
+    #packetSize = 0;
+    #bytesToRead;
+    #numFrames;
+
+    #chs = [];
+    #numChs = 0;
+
+    connected = false;
+    #connecting;
+
     live = false;
 
-    writer = null;
+    #writer = null;
 
-    reader = null;
-    keepReading = true;
-    closedPromise = null;
+    #reader = null;
+    #keepReading = true;
+    #closedPromise = null;
 
-    recvBuffer = [];
+    #recvBuffer = [];
+
+    #adc1Chars;
+
 
 
     constructor(port) {
-        this.port = port;
+        this.#port = port;
 
         navigator.serial.addEventListener("connect", (event) => {
             console.log(event);
@@ -45,7 +56,7 @@ export default class ScientISST {
         navigator.serial.addEventListener("disconnect", (event) => {
             // If the serial port was opened, a stream error would be observed as well.
             console.log(event);
-            this.connected = true;
+            this.connected = false;
         });
     }
 
@@ -73,65 +84,76 @@ export default class ScientISST {
     }
 
     async connect() {
-        await this.port.open({ baudRate: 9600 });
+        this.#connecting = true;
+        await this.#port.open({ baudRate: 115200 });
 
-        this.writer = this.port.writable.getWriter();
-        this.closedPromise = this.readUntilClosed();
-
-        this.connected = true;
+        this.#writer = this.#port.writable.getWriter();
+        this.#closedPromise = this.readUntilClosed();
 
         await this.changeAPI(API_SCIENTISST);
-
         await this.versionAndAdcChars();
 
-        console.log("Connected");
+        this.#connecting = false;
+        this.connected = true;
+        console.log("ScientISST Sense CONNECTED");
     }
 
     async disconnect() {
 
-        this.keepReading = false;
+        this.#keepReading = false;
         if (this.live) {
             await this.stop();
         }
 
-        if (this.writer) {
-            this.writer.releaseLock();
+        if (this.#writer) {
+            this.#writer.releaseLock();
         }
 
-        if (this.reader) {
-            this.reader.cancel()
-            await this.closedPromise;
+        if (this.#reader) {
+            this.#reader.cancel()
+            await this.#closedPromise;
         }
 
-        console.log("Disconnected");
+        this.clear();
+        console.log("ScientISST Sense DISCONNECTED");
     }
 
     async versionAndAdcChars() {
-        if (this.connected) {
-            const cmd = bytesArray(7);
-            await this.send(cmd);
-
-            const result = await this.recv(1024);
-
-            const decoder = new TextDecoder();
-            const result_text = decoder.decode(new Uint8Array(result));
-            const index = result_text.indexOf("\x00");
-            const version = result_text.substring(0, index);
-
-            this.adc1Chars = new EspAdcCalChars(result.slice(index + 1));
-
-            console.log("ScientISST Board Vref: " + this.adc1Chars.vref);
-            console.log("ScientISST Board ADC Attenuation Mode: " + this.adc1Chars.atten);
-
-            return version;
-
-        } else {
+        if (!this.connected && !this.#connecting) {
             throw "ScientISST not connected";
         }
+        if (this.live) {
+            throw "ScientISST not idle";
+        }
+
+        const cmd = bytesArray(7);
+        await this.send(cmd);
+
+        const result = await this.recv(1024);
+
+        const decoder = new TextDecoder();
+        const result_text = decoder.decode(new Uint8Array(result));
+        const index = result_text.indexOf("\x00");
+        const version = result_text.substring(0, index);
+
+        this.#adc1Chars = new EspAdcCalChars(result.slice(index + 1));
+
+        console.log("ScientISST Board Vref: " + this.#adc1Chars.vref);
+        console.log("ScientISST Board ADC Attenuation Mode: " + this.#adc1Chars.atten);
+
+        return version;
+
     }
 
 
     async changeAPI(mode) {
+        if (!this.connected && !this.#connecting) {
+            throw "ScientISST not connected";
+        }
+        if (this.live) {
+            throw "ScientISST not idle";
+        }
+
         mode <<= 4
         mode |= 0b11
 
@@ -142,26 +164,32 @@ export default class ScientISST {
     async start(sampleRate,
         channels,
         readsPerSecond = 5) {
+        if (!this.connected) {
+            throw "ScientISST not connected";
+        }
+        if (this.live) {
+            throw "ScientISST not idle";
+        }
 
         let chMask = 0
-        this.chs = [];
-        this.numChs = 0;
+        this.#chs = [];
+        this.#numChs = 0;
 
         channels.forEach((ch) => {
             if (ch <= 0 || ch > 8) {
                 throw "Invalid channel";
             }
-            this.chs.push(ch);
+            this.#chs.push(ch);
 
             const mask = 1 << (ch - 1)
 
             if (chMask & mask) {
-                this.numChs = 0;
+                this.#numChs = 0;
                 throw "Invalid channel";
             }
 
             chMask |= mask
-            this.numChs++;
+            this.#numChs++;
         });
 
         //  Sample rate
@@ -179,44 +207,57 @@ export default class ScientISST {
         await this.send(cmd);
 
 
-        this.packetSize = this.getPacketSize();
+        this.#packetSize = this.getPacketSize();
 
-        this.bytesToRead = this.packetSize * Math.max(
+        this.#bytesToRead = this.#packetSize * Math.max(
             Math.floor(sampleRate / readsPerSecond), 1
         );
-        if (this.bytesToRead > MAX_BUFFER_SIZE) {
-            this.bytesToRead = MAX_BUFFER_SIZE - (
-                MAX_BUFFER_SIZE % this.packetSize
+        if (this.#bytesToRead > MAX_BUFFER_SIZE) {
+            this.#bytesToRead = MAX_BUFFER_SIZE - (
+                MAX_BUFFER_SIZE % this.#packetSize
             );
         }
 
-        if (this.bytesToRead % this.packetSize) {
-            this.numChs = 0;
+        if (this.#bytesToRead % this.#packetSize) {
+            this.#numChs = 0;
             console.log("Error, bytes_to_read needs to be devisible by packet_size");
             throw "Invalid parameter";
         } else {
-            this.numFrames = Math.floor(this.bytesToRead / this.packetSize);
+            this.#numFrames = Math.floor(this.#bytesToRead / this.#packetSize);
         }
 
         this.live = true;
     }
 
     async stop() {
+        if (!this.connected) {
+            throw "ScientISST not connected";
+        }
+        if (!this.live) {
+            throw "ScientISST not live";
+        }
+
         const cmd = 0;
         this.live = false;
         await this.send([cmd]);
 
-        this.numChs = 0;
-        this.sampleRate = 0;
+        this.#numChs = 0;
 
         this.clear();
     }
 
     async read(convert = true) {
 
-        const frames = new ArrayBuffer(this.numFrames);
+        if (!this.connected) {
+            throw "ScientISST not connected";
+        }
+        if (!this.live) {
+            throw "ScientISST not live";
+        }
 
-        const result = await this.recv(this.bytesToRead);
+        const frames = new ArrayBuffer(this.#numFrames);
+
+        const result = await this.recv(this.#bytesToRead);
 
         let bf;
         let midFrameFlag;
@@ -224,13 +265,12 @@ export default class ScientISST {
         let byteIt, index, currCh, value;
         let result_tmp;
 
-        for (let it = 0; it < this.numFrames; it++) {
+        for (let it = 0; it < this.#numFrames; it++) {
 
-            bf = result.splice(0, this.packetSize);
+            bf = result.splice(0, this.#packetSize);
             midFrameFlag = 0;
 
-            // TODO: CRC4
-            while (!ScientISST.checkCRC4(bf, this.packetSize)) {
+            while (!ScientISST.checkCRC4(bf, this.#packetSize)) {
                 console.log("Error checking CRC4");
 
                 result_tmp = this.recv(1);
@@ -241,7 +281,7 @@ export default class ScientISST {
 
             }
 
-            f = new Frame(this.numChs);
+            f = new Frame(this.#numChs);
             frames[it] = f;
 
             f.seq = bf[bf.length - 1] >> 4;
@@ -255,9 +295,9 @@ export default class ScientISST {
             }
 
             byteIt = 0;
-            for (let i = 0; i < this.numChs; i++) {
-                index = this.numChs - 1 - i;
-                currCh = this.chs[index];
+            for (let i = 0; i < this.#numChs; i++) {
+                index = this.#numChs - 1 - i;
+                currCh = this.#chs[index];
 
                 if (currCh == AX1 || currCh == AX2) {
                     // TODO
@@ -283,7 +323,7 @@ export default class ScientISST {
 
                     if (convert) {
                         f.mv[index] =
-                            this.adc1Chars.espAdcCalRawToVoltage(
+                            this.#adc1Chars.espAdcCalRawToVoltage(
                                 f.a[index]
                             );
                     }
@@ -303,7 +343,7 @@ export default class ScientISST {
         let num_intern_active_chs = 0;
         let num_extern_active_chs = 0;
 
-        this.chs.forEach((ch) => {
+        this.#chs.forEach((ch) => {
             if (ch) {
                 if (ch == AX1 || ch == AX2) {
                     num_extern_active_chs++;
@@ -328,35 +368,34 @@ export default class ScientISST {
     }
 
     async readUntilClosed() {
-        while (this.port.readable && this.keepReading) {
-            this.reader = this.port.readable.getReader();
+        while (this.#port.readable && this.#keepReading) {
+            this.#reader = this.#port.readable.getReader();
             try {
                 while (true) {
-                    const { value, done } = await this.reader.read();
+                    const { value, done } = await this.#reader.read();
                     if (done) {
                         // Allow the serial port to be closed later.
                         break;
                     }
                     if (value) {
-                        this.recvBuffer.push(...value);
+                        this.#recvBuffer.push(...value);
                     }
                 }
             } catch (error) {
-                // TODO: Handle non-fatal read error.
                 console.log(error);
             } finally {
                 // Allow the serial port to be closed later.
-                this.reader.releaseLock();
+                this.#reader.releaseLock();
             }
         }
-        await this.port.close();
+        await this.#port.close();
     }
 
     clear() {
-        this.recvBuffer = [];
+        this.#recvBuffer = [];
     }
 
-    async recv(nrOfBytes) {
+    async recv(nrOfBytes, log = false) {
         let result = [];
         let n = 0;
         let l = 0;
@@ -368,12 +407,12 @@ export default class ScientISST {
         let n_to_wait = TIMEOUT_IN_MILLISECONDS / n_sleep;
 
         while (result.length != nrOfBytes && n_to_wait > 0) {
-            l = this.recvBuffer.length;
+            l = this.#recvBuffer.length;
             if (l > 0) {
                 n = nrOfBytes - result.length;
 
                 bytesToRead = Math.min(n, l)
-                removed = this.recvBuffer.splice(0, bytesToRead);
+                removed = this.#recvBuffer.splice(0, bytesToRead);
 
                 result.push(...removed);
             } else {
@@ -381,11 +420,17 @@ export default class ScientISST {
                 n_to_wait--;
             }
         }
-        // console.log("Bytes read: " + result);
+        if (log) {
+            console.log("Bytes read: " + result);
+        }
+
+        if (result.length == 0) {
+            throw "Error contacting device";
+        }
         return result;
     }
 
-    async send(data, nrOfBytes) {
+    async send(data, nrOfBytes, log = false) {
         nrOfBytes = nrOfBytes || data.length;
 
         const bytesDiff = nrOfBytes - data.length;
@@ -397,28 +442,18 @@ export default class ScientISST {
             data = data.reverse();
         }
 
-        // console.log("Bytes sent: " + data);
+        if (log) {
+            console.log("Bytes sent: " + data);
+        }
 
-        if (this.port.writable == null) {
+        if (this.#port.writable == null) {
             console.warn(`unable to find writable port`);
             return;
         }
 
-        await this.writer.write(new Uint8Array(data))
+        await this.#writer.write(new Uint8Array(data))
 
         await sleep(250);
     }
 }
 
-const sleep = ms => new Promise(r => setTimeout(r, ms));
-
-const bytesArray = (n) => {
-    if (!n) return new ArrayBuffer(0);
-    const a = [];
-    a.unshift(n & 255);
-    while (n >= 256) {
-        n = n >>> 8;
-        a.unshift(n & 255);
-    }
-    return a;
-}
