@@ -5,7 +5,7 @@ import { sleep, bytesArray } from './utils.js'
 
 const API_SCIENTISST = 2;
 
-const TIMEOUT_IN_MILLISECONDS = 3000;
+const TIMEOUT_IN_MILLISECONDS = 2000;
 
 const AI1 = 1;
 const AI2 = 2;
