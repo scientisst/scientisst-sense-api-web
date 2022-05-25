@@ -417,7 +417,11 @@ export default class ScientISST {
 
                 result.push(...removed);
             } else {
-                await sleep(n_sleep);
+                if (this.#connecting && result.length == 0) {
+                    await sleep(n_sleep * 3);
+                } else {
+                    await sleep(n_sleep);
+                }
                 n_to_wait--;
             }
         }
