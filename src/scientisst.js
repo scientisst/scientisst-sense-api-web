@@ -268,7 +268,7 @@ export default class ScientISST {
             }
         }
 
-        await this.send([cmd], 1, true);
+        await this.send([cmd]);
     }
 
     // def dac(self, voltage):
