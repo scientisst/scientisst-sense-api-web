@@ -253,6 +253,41 @@ export default class ScientISST {
         this.clear();
     }
 
+    async trigger(digitalOutput) {
+        const length = digitalOutput.length;
+
+        if (length != 2) {
+            throw "Invalid parameter";
+        }
+
+        let cmd = 0xB3;  // 1  0  1  1  O2 O1 1  1 - Set digital outputs
+
+        for (let i = 0; i < length; i++) {
+            if (digitalOutput[i]) {
+                cmd |= 0b100 << i;
+            }
+        }
+
+        await this.send([cmd], 1, true);
+    }
+
+    // def dac(self, voltage):
+    async dac(voltage) {
+
+        if (voltage < 0 || voltage > 3.3) {
+            throw "Invalid parameter"
+        }
+        let cmd = 0xA3;  // 1  0  1  0  0  0  1  1 - Set dac output
+
+        // Convert from voltage to raw:
+        const raw = int(voltage * 255 / 3.3)
+
+        cmd |= raw << 8
+        await this.send(cmd, 2)
+    }
+
+
+
     async read(convert = true) {
 
         if (!this.connected) {
