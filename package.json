@@ -1,6 +1,6 @@
 {
   "name": "@scientisst/sense",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "The ScientISST SENSE Web API using Javascript",
   "main": "src/scientisst.js",
   "type": "module",

@@ -87,18 +87,22 @@ export default class ScientISST {
         this.#connecting = true;
         await this.#port.open({ baudRate: 115200 });
 
-        this.#writer = this.#port.writable.getWriter();
-        this.#closedPromise = this.readUntilClosed();
+        try {
+            this.#writer = this.#port.writable.getWriter();
+            this.#closedPromise = this.readUntilClosed();
 
-        await this.changeAPI(API_SCIENTISST);
-        await this.versionAndAdcChars();
+            await this.changeAPI(API_SCIENTISST);
+            await this.versionAndAdcChars();
 
-        this.#connecting = false;
-        this.connected = true;
-        console.log("ScientISST Sense CONNECTED");
+            this.#connecting = false;
+            this.connected = true;
+            console.log("ScientISST Sense CONNECTED");
+        } catch (e) {
+            this.disconnect(false);
+        }
     }
 
-    async disconnect() {
+    async disconnect(log = true) {
 
         this.#keepReading = false;
         if (this.live) {
@@ -116,7 +120,9 @@ export default class ScientISST {
 
         this.clear();
         this.connected = false;
-        console.log("ScientISST Sense DISCONNECTED");
+        if (log) {
+            console.log("ScientISST Sense DISCONNECTED");
+        }
     }
 
     async versionAndAdcChars() {
