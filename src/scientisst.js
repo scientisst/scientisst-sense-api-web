@@ -43,6 +43,9 @@ export default class ScientISST {
 
     #adc1Chars;
 
+    #errorContactingCount = 0;
+    #onConnectionLost = undefined;
+
 
 
     constructor(port) {
@@ -83,7 +86,7 @@ export default class ScientISST {
         return crc == (data[data.length - 1] & 0x0F);
     }
 
-    async connect() {
+    async connect(onConnectionLost = undefined) {
         this.#connecting = true;
         await this.#port.open({ baudRate: 115200 });
 
@@ -96,6 +99,7 @@ export default class ScientISST {
 
             this.#connecting = false;
             this.connected = true;
+            this.#onConnectionLost = onConnectionLost;
             console.log("ScientISST Sense CONNECTED");
         } catch (e) {
             this.disconnect(false);
@@ -472,8 +476,14 @@ export default class ScientISST {
         }
 
         if (result.length == 0) {
+            this.#errorContactingCount++;
+            if (this.#errorContactingCount >= 3) {
+                this.disconnect().then(() => this.#onConnectionLost ? this.#onConnectionLost() : undefined);
+                throw "Lost connection to ScientISST. Trying to gracefully disconnect..."
+            }
             throw "Error contacting device";
         }
+        this.#errorContactingCount = 0;
         return result;
     }
 

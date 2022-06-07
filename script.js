@@ -14,7 +14,9 @@ if ("serial" in navigator) {
     connectBtn.addEventListener("click", async () => {
         scientisst = await ScientISST.requestPort();
         try {
-            await scientisst.connect();
+            await scientisst.connect(() => {
+                console.log("Connection lost :(")
+            });
         } catch (e) {
             console.log(e);
         }
@@ -50,25 +52,30 @@ if ("serial" in navigator) {
             let frames, frame, frameStr;
             textArea.value = "";
             while (scientisst.live) {
-                frames = await scientisst.read(convert);
-                frame = frames[0];
-                frameStr =
-                    "seq: " +
-                    frame.seq +
-                    ", d: " +
-                    frame.digital +
-                    ", a: " +
-                    frame.a;
-                if (convert) {
-                    frameStr += ", mv: " +
-                        frame.mv
-                        ;
-                }
-                frameStr += "\n";
+                try {
+                    frames = await scientisst.read(convert);
+                    frame = frames[0];
+                    frameStr =
+                        "seq: " +
+                        frame.seq +
+                        ", d: " +
+                        frame.digital +
+                        ", a: " +
+                        frame.a;
+                    if (convert) {
+                        frameStr += ", mv: " +
+                            frame.mv
+                            ;
+                    }
+                    frameStr += "\n";
 
-                console.log(frameStr);
-                textArea.value += frameStr;
-                textarea.scrollTop = textarea.scrollHeight;
+                    console.log(frameStr);
+                    textArea.value += frameStr;
+                    textarea.scrollTop = textarea.scrollHeight;
+                } catch (e) {
+                    console.log(scientisst)
+                    console.log(e);
+                }
             }
         }
     });
