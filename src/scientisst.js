@@ -99,6 +99,7 @@ export default class ScientISST {
             console.log("ScientISST Sense CONNECTED");
         } catch (e) {
             this.disconnect(false);
+            throw (e);
         }
     }
 
