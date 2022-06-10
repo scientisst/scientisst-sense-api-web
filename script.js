@@ -25,13 +25,14 @@ connectBthBtn.addEventListener("click", async () => {
 });
 
 connectWsBtn.addEventListener("click", async () => {
-    scientisst = await ScientISST.fromWS();
+    scientisst = await ScientISST.fromWS('192.168.4.1');
     try {
         await scientisst.connect(() => {
             console.log("Connection lost :(")
         });
     } catch (e) {
         console.log(e);
+        scientisst.requestCert();
     }
 });
 

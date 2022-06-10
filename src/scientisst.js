@@ -23,6 +23,7 @@ const MAX_BUFFER_SIZE = 4096;
 
 export default class ScientISST {
     #port;
+    #address;
     #socket = undefined;
     #mode = BTH;
 
@@ -69,14 +70,27 @@ export default class ScientISST {
                 this.connected = false;
             });
         } else if (mode == WS) {
-            this.#port = `ws://scientisst.local`;
+            if (port) {
+                this.#port = port;
+            } else {
+                this.#port = "scientisst.local";
+            }
+            this.#address = `wss://${this.#port}`;
         }
     }
 
-    static async fromWS() {
+    static async fromWS(address = undefined) {
         // promise even though it's not necessary
         // for consistency
-        return Promise.resolve(new ScientISST(undefined, WS));
+        return Promise.resolve(new ScientISST(address, WS));
+    }
+
+    requestCert() {
+        if (this.#mode == WS) {
+            window.open(`https://${this.#port}/cert`, "_self");
+        } else {
+            throw "Not in WS mode";
+        }
     }
 
     static async requestPort() {
@@ -112,7 +126,7 @@ export default class ScientISST {
                 this.#closedPromise = this.readUntilClosed();
             } else if (this.#mode == WS) {
 
-                const address = this.#port;
+                const address = this.#address;
                 this.#socket = await new Promise(function (resolve, reject) {
                     let server = new WebSocket(address);
                     server.onopen = function () {
@@ -166,7 +180,9 @@ export default class ScientISST {
                 await this.#closedPromise;
             }
         } else if (this.#mode == WS) {
-            this.#socket.close(1000, "Work complete");
+            if (this.#socket) {
+                this.#socket.close(1000, "Work complete");
+            }
         } else {
             throw "Communication mode - Not implemented";
         }
