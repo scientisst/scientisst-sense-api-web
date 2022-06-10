@@ -73,8 +73,10 @@ export default class ScientISST {
         }
     }
 
-    static fromWS() {
-        return new ScientISST(undefined, WS);
+    static async fromWS() {
+        // promise even though it's not necessary
+        // for consistency
+        return Promise.resolve(new ScientISST(undefined, WS));
     }
 
     static async requestPort() {

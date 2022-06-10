@@ -25,7 +25,7 @@ connectBthBtn.addEventListener("click", async () => {
 });
 
 connectWsBtn.addEventListener("click", async () => {
-    scientisst = ScientISST.fromWS();
+    scientisst = await ScientISST.fromWS();
     try {
         await scientisst.connect(() => {
             console.log("Connection lost :(")
