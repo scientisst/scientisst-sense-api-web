@@ -16,10 +16,15 @@ const AI6 = 6;
 const AX1 = 7;
 const AX2 = 8;
 
+const BTH = 0;
+const WS = 1;
+
 const MAX_BUFFER_SIZE = 4096;
 
 export default class ScientISST {
     #port;
+    #socket = undefined;
+    #mode = BTH;
 
     #packetSize = 0;
     #bytesToRead;
@@ -48,19 +53,24 @@ export default class ScientISST {
 
 
 
-    constructor(port) {
-        this.#port = port;
+    constructor(port = undefined, mode = BTH) {
+        this.#mode = mode;
+        if (mode == BTH) {
+            this.#port = port;
 
-        navigator.serial.addEventListener("connect", (event) => {
-            console.log(event);
-            this.connected = true;
-        });
+            navigator.serial.addEventListener("connect", (event) => {
+                console.log(event);
+                this.connected = true;
+            });
 
-        navigator.serial.addEventListener("disconnect", (event) => {
-            // If the serial port was opened, a stream error would be observed as well.
-            console.log(event);
-            this.connected = false;
-        });
+            navigator.serial.addEventListener("disconnect", (event) => {
+                // If the serial port was opened, a stream error would be observed as well.
+                console.log(event);
+                this.connected = false;
+            });
+        } else if (mode == WS) {
+            this.#port = `ws://scientisst.local`;
+        }
     }
 
     static async requestPort() {
@@ -88,11 +98,37 @@ export default class ScientISST {
 
     async connect(onConnectionLost = undefined) {
         this.#connecting = true;
-        await this.#port.open({ baudRate: 115200 });
 
         try {
-            this.#writer = this.#port.writable.getWriter();
-            this.#closedPromise = this.readUntilClosed();
+            if (this.#mode == BTH) {
+                await this.#port.open({ baudRate: 115200 });
+                this.#writer = this.#port.writable.getWriter();
+                this.#closedPromise = this.readUntilClosed();
+            } else if (this.#mode == WS) {
+
+                const address = this.#port;
+                this.#socket = await new Promise(function (resolve, reject) {
+                    let server = new WebSocket(address);
+                    server.onopen = function () {
+                        resolve(server);
+                    };
+                    server.onerror = function (err) {
+                        reject(err);
+                    };
+                });
+
+                const recvBuffer = this.#recvBuffer;
+                this.#socket.onmessage = async function (event) {
+                    const result = new Uint8Array(await event.data.arrayBuffer());
+                    recvBuffer.push(...result);
+                };
+
+                this.#socket.onclose = function (event) {
+                    //TODO: handle connection closed
+                };
+
+            }
+
 
             await this.changeAPI(API_SCIENTISST);
             await this.versionAndAdcChars();
@@ -109,18 +145,24 @@ export default class ScientISST {
 
     async disconnect(log = true) {
 
-        this.#keepReading = false;
-        if (this.live) {
-            await this.stop();
-        }
+        if (this.#mode == BTH) {
+            this.#keepReading = false;
+            if (this.live) {
+                await this.stop();
+            }
 
-        if (this.#writer) {
-            this.#writer.releaseLock();
-        }
+            if (this.#writer) {
+                this.#writer.releaseLock();
+            }
 
-        if (this.#reader) {
-            this.#reader.cancel()
-            await this.#closedPromise;
+            if (this.#reader) {
+                this.#reader.cancel()
+                await this.#closedPromise;
+            }
+        } else if (this.#mode == WS) {
+            this.#socket.close(1000, "Work complete");
+        } else {
+            throw "Communication mode - Not implemented";
         }
 
         this.clear();
@@ -276,7 +318,6 @@ export default class ScientISST {
         await this.send([cmd]);
     }
 
-    // def dac(self, voltage):
     async dac(voltage) {
 
         if (voltage < 0 || voltage > 3.3) {
@@ -439,7 +480,7 @@ export default class ScientISST {
     }
 
     clear() {
-        this.#recvBuffer = [];
+        this.#recvBuffer.length = 0;
     }
 
     async recv(nrOfBytes, log = false) {
@@ -503,14 +544,20 @@ export default class ScientISST {
             console.log("Bytes sent: " + data);
         }
 
-        if (this.#port.writable == null) {
-            console.warn(`unable to find writable port`);
-            return;
+        if (this.#mode == BTH) {
+            if (this.#port.writable == null) {
+                console.warn(`unable to find writable port`);
+                return;
+            }
+
+            await this.#writer.write(new Uint8Array(data));
+
+            await sleep(250);
+        } else if (this.#mode == WS) {
+            this.#socket.send(new Int8Array(data));
+        } else {
+            throw "Communication mode - Not implemented";
         }
-
-        await this.#writer.write(new Uint8Array(data))
-
-        await sleep(250);
     }
 }
 

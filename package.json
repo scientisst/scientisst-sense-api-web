@@ -1,6 +1,6 @@
 {
   "name": "@scientisst/sense",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "The ScientISST SENSE Web API using Javascript",
   "main": "src/scientisst.js",
   "type": "module",
@@ -21,5 +21,6 @@
   "bugs": {
     "url": "https://github.com/scientisst/scientisst-sense-api-web/issues"
   },
-  "homepage": "https://github.com/scientisst/scientisst-sense-api-web#readme"
+  "homepage": "https://github.com/scientisst/scientisst-sense-api-web#readme",
+  "dependencies": {}
 }

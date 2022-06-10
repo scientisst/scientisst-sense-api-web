@@ -1,6 +1,7 @@
 import ScientISST from "./src/scientisst.js";
 
-const connectBtn = document.getElementById("connect");
+const connectBthBtn = document.getElementById("connect-bth");
+const connectWsBtn = document.getElementById("connect-ws");
 const disconnectBtn = document.getElementById("disconnect");
 const versionBtn = document.getElementById("version");
 const startBtn = document.getElementById("start");
@@ -10,9 +11,10 @@ const deviceSettingsForm = document.getElementById("device-settings");
 
 let scientisst;
 
-if ("serial" in navigator) {
-    connectBtn.addEventListener("click", async () => {
+connectBthBtn.addEventListener("click", async () => {
+    if ("serial" in navigator) {
         scientisst = await ScientISST.requestPort();
+        scientisst = new ScientISST(undefined, 1);
         try {
             await scientisst.connect(() => {
                 console.log("Connection lost :(")
@@ -20,71 +22,80 @@ if ("serial" in navigator) {
         } catch (e) {
             console.log(e);
         }
-    });
+    }
+});
 
-    disconnectBtn.addEventListener("click", async () => {
-        if (scientisst) {
-            await scientisst.disconnect();
-        }
-    });
+connectWsBtn.addEventListener("click", async () => {
+    scientisst = new ScientISST(undefined, 1);
+    try {
+        await scientisst.connect(() => {
+            console.log("Connection lost :(")
+        });
+    } catch (e) {
+        console.log(e);
+    }
+});
 
-    versionBtn.addEventListener("click", async () => {
-        if (scientisst) {
-            const version_str = await scientisst.versionAndAdcChars();
-            alert(version_str);
-        }
-    });
+disconnectBtn.addEventListener("click", async () => {
+    if (scientisst) {
+        await scientisst.disconnect();
+    }
+});
 
-    startBtn.addEventListener("click", async () => {
-        if (scientisst && !scientisst.live) {
+versionBtn.addEventListener("click", async () => {
+    if (scientisst) {
+        const version_str = await scientisst.versionAndAdcChars();
+        alert(version_str);
+    }
+});
 
-            const samplingRate = deviceSettingsForm["sampling-rate"].value;
-            const channels = [];
-            const convert = deviceSettingsForm["mv"].checked;
+startBtn.addEventListener("click", async () => {
+    if (scientisst && !scientisst.live) {
 
-            for (let ch = 1; ch <= 6; ch++) {
-                if (deviceSettingsForm["AI" + ch].checked) {
-                    channels.push(ch);
-                }
-            }
+        const samplingRate = deviceSettingsForm["sampling-rate"].value;
+        const channels = [];
+        const convert = deviceSettingsForm["mv"].checked;
 
-            await scientisst.start(samplingRate, channels);
-            let frames, frame, frameStr;
-            textArea.value = "";
-            while (scientisst.live) {
-                try {
-                    frames = await scientisst.read(convert);
-                    frame = frames[0];
-                    frameStr =
-                        "seq: " +
-                        frame.seq +
-                        ", d: " +
-                        frame.digital +
-                        ", a: " +
-                        frame.a;
-                    if (convert) {
-                        frameStr += ", mv: " +
-                            frame.mv
-                            ;
-                    }
-                    frameStr += "\n";
-
-                    console.log(frameStr);
-                    textArea.value += frameStr;
-                    textarea.scrollTop = textarea.scrollHeight;
-                } catch (e) {
-                    console.log(scientisst)
-                    console.log(e);
-                }
+        for (let ch = 1; ch <= 6; ch++) {
+            if (deviceSettingsForm["AI" + ch].checked) {
+                channels.push(ch);
             }
         }
-    });
 
-    stopBtn.addEventListener("click", async () => {
-        if (scientisst && scientisst.live) {
-            await scientisst.stop();
+        await scientisst.start(samplingRate, channels);
+        let frames, frame, frameStr;
+        textArea.value = "";
+        while (scientisst.live) {
+            try {
+                frames = await scientisst.read(convert);
+                frame = frames[0];
+                frameStr =
+                    "seq: " +
+                    frame.seq +
+                    ", d: " +
+                    frame.digital +
+                    ", a: " +
+                    frame.a;
+                if (convert) {
+                    frameStr += ", mv: " +
+                        frame.mv
+                        ;
+                }
+                frameStr += "\n";
+
+                console.log(frameStr);
+                textArea.value += frameStr;
+                textarea.scrollTop = textarea.scrollHeight;
+            } catch (e) {
+                console.log(scientisst)
+                console.log(e);
+            }
         }
-    });
-} else {
-    alert("Browser not compatible with Web Serial API");
-}
+    }
+});
+
+stopBtn.addEventListener("click", async () => {
+    if (scientisst && scientisst.live) {
+        await scientisst.stop();
+    }
+});
