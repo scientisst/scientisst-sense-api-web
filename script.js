@@ -14,7 +14,6 @@ let scientisst;
 connectBthBtn.addEventListener("click", async () => {
     if ("serial" in navigator) {
         scientisst = await ScientISST.requestPort();
-        scientisst = new ScientISST(undefined, 1);
         try {
             await scientisst.connect(() => {
                 console.log("Connection lost :(")
@@ -26,7 +25,7 @@ connectBthBtn.addEventListener("click", async () => {
 });
 
 connectWsBtn.addEventListener("click", async () => {
-    scientisst = new ScientISST(undefined, 1);
+    scientisst = ScientISST.fromWS();
     try {
         await scientisst.connect(() => {
             console.log("Connection lost :(")

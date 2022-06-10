@@ -73,6 +73,10 @@ export default class ScientISST {
         }
     }
 
+    static fromWS() {
+        return new ScientISST(undefined, WS);
+    }
+
     static async requestPort() {
         // Prompt user to select any serial port.
         const port = await navigator.serial.requestPort();
