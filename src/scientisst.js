@@ -5,7 +5,7 @@ import { sleep, bytesArray } from './utils.js'
 
 const API_SCIENTISST = 2;
 
-const TIMEOUT_IN_MILLISECONDS = 2000;
+const TIMEOUT_IN_MILLISECONDS = 5000;
 
 const AI1 = 1;
 const AI2 = 2;
@@ -159,7 +159,7 @@ export default class ScientISST {
             console.log("ScientISST Sense CONNECTED");
         } catch (e) {
             this.disconnect(false);
-            throw (e);
+            throw(e);
         }
     }
 
@@ -205,7 +205,7 @@ export default class ScientISST {
         const cmd = bytesArray(7);
         await this.send(cmd);
 
-        const result = await this.recv(1024);
+        const result = await this.recv(1024, false, 2000);
 
         const decoder = new TextDecoder();
         const result_text = decoder.decode(new Uint8Array(result));
@@ -505,16 +505,17 @@ export default class ScientISST {
         this.#recvBuffer.length = 0;
     }
 
-    async recv(nrOfBytes, log = false) {
+    async recv(nrOfBytes, log = false, timeout=undefined) {
         let result = [];
         let n = 0;
         let l = 0;
         let bytesToRead = 0;
         let removed;
 
+        const _timeout = timeout == undefined ? TIMEOUT_IN_MILLISECONDS : timeout;
 
         const n_sleep = 100;
-        let n_to_wait = TIMEOUT_IN_MILLISECONDS / n_sleep;
+        let n_to_wait = _timeout / n_sleep;
 
         while (result.length != nrOfBytes && n_to_wait > 0) {
             l = this.#recvBuffer.length;

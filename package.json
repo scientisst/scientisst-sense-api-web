@@ -1,10 +1,9 @@
 {
   "name": "@scientisst/sense",
-  "version": "1.2.3",
+  "version": "1.2.5",
   "description": "The ScientISST SENSE Web API using Javascript",
   "main": "src/scientisst.js",
   "type": "module",
-  "scripts": {},
   "author": "Afonso Raposo",
   "license": "MIT",
   "repository": {
@@ -18,9 +17,14 @@
     "javascript",
     "web"
   ],
+  "scripts": {
+    "serve": "live-server"
+  },
   "bugs": {
     "url": "https://github.com/scientisst/scientisst-sense-api-web/issues"
   },
   "homepage": "https://github.com/scientisst/scientisst-sense-api-web#readme",
-  "dependencies": {}
+  "devDependencies": {
+    "live-server": "1.2.2"
+  }
 }
