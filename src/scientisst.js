@@ -189,7 +189,7 @@ export default class ScientISST {
     }
   }
 
-  async versionAndAdcChars() {
+  async versionAndAdcChars(log = false) {
     if (!this.connected && !this.#connecting) {
       throw "ScientISST not connected";
     }
@@ -209,10 +209,13 @@ export default class ScientISST {
 
     this.#adc1Chars = new EspAdcCalChars(result.slice(index + 1));
 
-    console.log("ScientISST Board Vref: " + this.#adc1Chars.vref);
-    console.log(
-      "ScientISST Board ADC Attenuation Mode: " + this.#adc1Chars.atten
-    );
+    if (log) {
+      console.log(version);
+      console.log("ScientISST Board Vref: " + this.#adc1Chars.vref);
+      console.log(
+        "ScientISST Board ADC Attenuation Mode: " + this.#adc1Chars.atten
+      );
+    }
 
     return version;
   }
