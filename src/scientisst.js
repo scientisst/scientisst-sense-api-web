@@ -147,7 +147,7 @@ export default class ScientISST {
       }
 
       await this.changeAPI(API_SCIENTISST);
-      this.version = await this.versionAndAdcChars();
+      await this.versionAndAdcChars();
 
       this.#connecting = false;
       this.connected = true;
@@ -206,6 +206,7 @@ export default class ScientISST {
     const result_text = decoder.decode(new Uint8Array(result));
     const index = result_text.indexOf("\x00");
     const version = result_text.substring(0, index);
+    this.version = version;
 
     this.#adc1Chars = new EspAdcCalChars(result.slice(index + 1));
 
