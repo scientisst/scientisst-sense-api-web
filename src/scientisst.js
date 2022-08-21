@@ -3,10 +3,12 @@ import EspAdcCalChars from "./esp_adc/esp_adc.js";
 
 import { sleep, bytesArray } from "./utils.js";
 
+// default API mode (only one supported)
 const API_SCIENTISST = 2;
 
 const TIMEOUT_IN_MILLISECONDS = 5000;
 
+// define channels indices
 const AI1 = 1;
 const AI2 = 2;
 const AI3 = 3;
@@ -16,14 +18,18 @@ const AI6 = 6;
 const AX1 = 7;
 const AX2 = 8;
 
+// communication modes
 const BTH = 0;
 const WS = 1;
 
 const MAX_BUFFER_SIZE = 4096;
 
 export default class ScientISST {
+  // serial port or device ip
   #port;
+  // websocket address
   #address;
+  // websocket
   #socket = undefined;
   #mode = BTH;
 
@@ -38,21 +44,30 @@ export default class ScientISST {
   #connecting;
 
   live = false;
+  // hold version number
   version = "";
 
+  // writer for web serial API
   #writer = null;
 
+  // reader and variables required for web serial API
   #reader = null;
   #keepReading = true;
   #closedPromise = null;
 
+  // buffer to store all received data
   #recvBuffer = [];
 
+  // store adc1 chars
   #adc1Chars;
 
+  // counter for contacting errors
   #errorContactingCount = 0;
+  // function to execute on connection lost
   #onConnectionLost = undefined;
 
+  // default constructor
+  // can be used, but BTH or WS specific methods are prefered
   constructor(port = undefined, mode = BTH) {
     this.#mode = mode;
     if (mode == BTH) {
@@ -78,12 +93,14 @@ export default class ScientISST {
     }
   }
 
+  // constructor for WebSocket mode
   static async fromWS(address = undefined) {
     // promise even though it's not necessary
     // for consistency
     return Promise.resolve(new ScientISST(address, WS));
   }
 
+  // request acceptance of certificate
   requestCert() {
     if (this.#mode == WS) {
       window.open(`https://${this.#port}/cert`, "_self");
@@ -92,6 +109,8 @@ export default class ScientISST {
     }
   }
 
+  // constructor for Serial mode.
+  // request access to serial port
   static async requestPort() {
     // Prompt user to select any serial port.
     const port = await navigator.serial.requestPort();
@@ -115,14 +134,20 @@ export default class ScientISST {
     return crc == (data[data.length - 1] & 0x0f);
   }
 
+  // provide function to execute on connection lost
   async connect(onConnectionLost = undefined) {
     this.#connecting = true;
 
     try {
+      // Bluetooth serial mode
       if (this.#mode == BTH) {
         await this.#port.open({ baudRate: 115200 });
+
+        // start serial writer and reader
         this.#writer = this.#port.writable.getWriter();
         this.#closedPromise = this.readUntilClosed();
+
+        // Web serial mode
       } else if (this.#mode == WS) {
         const address = this.#address;
         this.#socket = await new Promise(function (resolve, reject) {
@@ -136,6 +161,7 @@ export default class ScientISST {
         });
 
         const recvBuffer = this.#recvBuffer;
+        // once web socket receives messages, add to buffer
         this.#socket.onmessage = async function (event) {
           const result = new Uint8Array(await event.data.arrayBuffer());
           recvBuffer.push(...result);
@@ -146,7 +172,9 @@ export default class ScientISST {
         };
       }
 
+      // set API mode to ScientISST
       await this.changeAPI(API_SCIENTISST);
+      // get version to load Adc1 chars
       await this.versionAndAdcChars();
 
       this.#connecting = false;
@@ -154,11 +182,13 @@ export default class ScientISST {
       this.#onConnectionLost = onConnectionLost;
       console.log("ScientISST Sense CONNECTED");
     } catch (e) {
+      // if anything goes wrong, abort
       this.disconnect(false);
       throw e;
     }
   }
 
+  // disconnect and choose to log or not
   async disconnect(log = true) {
     if (this.#mode == BTH) {
       this.#keepReading = false;
@@ -182,6 +212,7 @@ export default class ScientISST {
       throw "Communication mode - Not implemented";
     }
 
+    // clear received buffer
     this.clear();
     this.connected = false;
     if (log) {
@@ -189,6 +220,7 @@ export default class ScientISST {
     }
   }
 
+  // Gets the device firmware version string and esp_adc_characteristics
   async versionAndAdcChars(log = false) {
     if (!this.connected && !this.#connecting) {
       throw "ScientISST not connected";
@@ -200,6 +232,7 @@ export default class ScientISST {
     const cmd = bytesArray(7);
     await this.send(cmd);
 
+    // get 1024 bytes using a timeout of 2 seconds
     const result = await this.recv(1024, false, 2000);
 
     const decoder = new TextDecoder();
@@ -208,6 +241,7 @@ export default class ScientISST {
     const version = result_text.substring(0, index);
     this.version = version;
 
+    // get adc1chars
     this.#adc1Chars = new EspAdcCalChars(result.slice(index + 1));
 
     if (log) {
@@ -236,6 +270,14 @@ export default class ScientISST {
     await this.send(cmd);
   }
 
+  // Starts a signal acquisition from the device
+  // Args:
+  //     sample_rate (int): Sampling rate in Hz.
+  //         Accepted values are 1, 10, 100 or 1000 Hz.
+  //     channels (list): Set of channels to acquire.
+  //         Accepted channels are 1...6 for inputs A1...A6.
+  //     reads_per_second (int): Number of times to read the data streaming from the device.
+  //         Accepted values are integers greater than 0.
   async start(sampleRate, channels, readsPerSecond = 5) {
     if (!this.connected) {
       throw "ScientISST not connected";
@@ -271,7 +313,7 @@ export default class ScientISST {
 
     await this.send(sr, 4);
 
-    //  Cleanup existing data in bluetooth socket
+    //  Cleanup existing data
     this.clear();
 
     const cmd = bytesArray(chMask);
@@ -316,6 +358,7 @@ export default class ScientISST {
     this.clear();
   }
 
+  // control output of digital ports
   async trigger(digitalOutput) {
     const length = digitalOutput.length;
 
@@ -334,6 +377,7 @@ export default class ScientISST {
     await this.send([cmd]);
   }
 
+  // control output of DAC
   async dac(voltage) {
     if (voltage < 0 || voltage > 3.3) {
       throw "Invalid parameter";
@@ -347,6 +391,11 @@ export default class ScientISST {
     await this.send(cmd, 2);
   }
 
+  // Reads acquisition frames from the device.
+  // This method returns when all requested frames are received from the device, or when a timeout occurs.
+  //
+  // Args:
+  //     convert (bool): Convert from raw to mV
   async read(convert = true) {
     if (!this.connected) {
       throw "ScientISST not connected";
@@ -369,9 +418,11 @@ export default class ScientISST {
       bf = result.splice(0, this.#packetSize);
       midFrameFlag = 0;
 
+      // if CRC check failed, try to resynchronize with the next valid frame
       while (!ScientISST.checkCRC4(bf, this.#packetSize)) {
         console.log("Error checking CRC4");
 
+        // checking with one new byte at a time
         result_tmp = this.recv(1);
 
         result.push(result_tmp);
@@ -382,6 +433,7 @@ export default class ScientISST {
       f = new Frame(this.#numChs);
       frames[it] = f;
 
+      // Get seq number and IO states
       f.seq = bf[bf.length - 1] >> 4;
 
       for (let i = 0; i < 4; i++) {
@@ -392,13 +444,16 @@ export default class ScientISST {
         }
       }
 
+      // Get channel values
       byteIt = 0;
       for (let i = 0; i < this.#numChs; i++) {
         index = this.#numChs - 1 - i;
         currCh = this.#chs[index];
 
+        // If it's an AX channel
         if (currCh == AX1 || currCh == AX2) {
           // TODO
+          // If it's an AI channel
         } else {
           if (!midFrameFlag) {
             value = bf[byteIt + 1] << 8;
@@ -435,21 +490,26 @@ export default class ScientISST {
 
     this.#chs.forEach((ch) => {
       if (ch) {
+        // Add 24bit channel's contributuion to packet size
         if (ch == AX1 || ch == AX2) {
           num_extern_active_chs++;
+          // Count 12bit channels
         } else {
           num_intern_active_chs++;
         }
       }
     });
+    // Add 24bit channel's contributuion to packet size
     packetSize = 3 * num_extern_active_chs;
 
+    // Add 12bit channel's contributuion to packet size
     if (num_intern_active_chs % 2) {
       packetSize += (num_intern_active_chs * 12 - 4) / 8;
     } else {
       packetSize += (num_intern_active_chs * 12) / 8;
     }
 
+    // for the I/Os and seq+crc bytes
     packetSize += 2;
 
     return Math.floor(packetSize);
@@ -479,6 +539,7 @@ export default class ScientISST {
     await this.#port.close();
   }
 
+  // delete all values of recvBuffer
   clear() {
     this.#recvBuffer.length = 0;
   }
@@ -495,6 +556,7 @@ export default class ScientISST {
     const n_sleep = 100;
     let n_to_wait = _timeout / n_sleep;
 
+    // read until all values were received or timeout
     while (result.length != nrOfBytes && n_to_wait > 0) {
       l = this.#recvBuffer.length;
       if (l > 0) {
@@ -517,6 +579,7 @@ export default class ScientISST {
       console.log("Bytes read: " + result);
     }
 
+    // disconnect if no values were received
     if (result.length == 0) {
       this.#errorContactingCount++;
       if (this.#errorContactingCount >= 3) {
