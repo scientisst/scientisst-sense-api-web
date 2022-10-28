@@ -3,8 +3,25 @@
 	"version": "2.0.0",
 	"description": "The ScientISST SENSE Web API using Javascript",
 	"main": "out/scientisst.js",
-	"type": "commonjs",
-	"author": "Afonso Raposo",
+	"contributors": [
+		{
+			"name": "Rui Maciel",
+			"email": "ruigouveiamaciel@gmail.com",
+			"url": "https://github.com/ruigouveiamaciel"
+		},
+		{
+			"name": "Afonso Raposo",
+			"email": "afonso@craposo.com",
+			"url": "https://afonsoraposo.com/"
+		}
+	],
+	"maintainers": [
+		{
+			"name": "Rui Maciel",
+			"email": "ruigouveiamaciel@gmail.com",
+			"url": "https://github.com/ruigouveiamaciel"
+		}
+	],
 	"license": "MIT",
 	"repository": {
 		"type": "git",
