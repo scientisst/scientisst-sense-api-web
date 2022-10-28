@@ -1,28 +1,40 @@
 {
-  "name": "@scientisst/sense",
-  "version": "2.0.0",
-  "description": "The ScientISST SENSE Web API using Javascript",
-  "main": "out/scientisst.js",
-  "type": "module",
-  "author": "Afonso Raposo",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/scientisst/scientisst-sense-api-web.git"
-  },
-  "keywords": [
-    "scientisst",
-    "sense",
-    "api",
-    "javascript",
-    "web"
-  ],
-  "bugs": {
-    "url": "https://github.com/scientisst/scientisst-sense-api-web/issues"
-  },
-  "homepage": "https://github.com/scientisst/scientisst-sense-api-web#readme",
-  "devDependencies": {
-    "@types/dom-serial": "^1.0.3",
-    "typescript": "^4.8.4"
-  }
+	"name": "@scientisst/sense",
+	"version": "2.0.0",
+	"description": "The ScientISST SENSE Web API using Javascript",
+	"main": "out/scientisst.js",
+	"type": "commonjs",
+	"author": "Afonso Raposo",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/scientisst/scientisst-sense-api-web.git"
+	},
+	"keywords": [
+		"scientisst",
+		"sense",
+		"api",
+		"javascript",
+		"web"
+	],
+	"bugs": {
+		"url": "https://github.com/scientisst/scientisst-sense-api-web/issues"
+	},
+	"homepage": "https://github.com/scientisst/scientisst-sense-api-web#readme",
+	"scripts": {
+		"prettier": "prettier --check .",
+		"prettier-fix": "prettier --write ."
+	},
+	"devDependencies": {
+		"@trivago/prettier-plugin-sort-imports": "^3.4.0",
+		"@types/dom-serial": "^1.0.3",
+		"@typescript-eslint/eslint-plugin": "^5.41.0",
+		"@typescript-eslint/parser": "^5.41.0",
+		"eslint": "^8.26.0",
+		"eslint-config-prettier": "^8.5.0",
+		"eslint-plugin-import": "^2.26.0",
+		"eslint-plugin-prettier": "^4.2.1",
+		"prettier": "^2.7.1",
+		"typescript": "^4.8.4"
+	}
 }

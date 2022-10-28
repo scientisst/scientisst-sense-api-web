@@ -1,5 +1,5 @@
 export default class Frame {
-  /*
+	/*
   ScientISST Device Frame class
 
   A frame returned by ScientISST.read()
@@ -17,13 +17,13 @@ export default class Frame {
       mv (list): Array of analog inputs values of the active channels in mV.
   */
 
-  digital = [0, 0, 0, 0];
-  seq = -1;
-  a = null;
-  mv = null;
+	digital = [0, 0, 0, 0]
+	seq = -1
+	a = null
+	mv = null
 
-  constructor(numChannels) {
-    this.a = new Array(numChannels);
-    this.mv = new Array(numChannels);
-  }
+	constructor(numChannels) {
+		this.a = new Array(numChannels)
+		this.mv = new Array(numChannels)
+	}
 }
