@@ -175,7 +175,7 @@ export default class ScientISST {
       // set API mode to ScientISST
       await this.changeAPI(API_SCIENTISST);
       // get version to load Adc1 chars
-      await this.versionAndAdcChars();
+      await this.versionAndAdcChars(true);
 
       this.#connecting = false;
       this.connected = true;
@@ -244,7 +244,7 @@ export default class ScientISST {
     // get adc1chars
     this.#adc1Chars = new EspAdcCalChars(result.slice(index + 1));
 
-    if (log) {
+    if (true) {
       console.log(version);
       console.log("ScientISST Board Vref: " + this.#adc1Chars.vref);
       console.log(
@@ -309,6 +309,7 @@ export default class ScientISST {
 
     //  Sample rate
     const sr = bytesArray(sampleRate);
+    //@ts-ignore
     sr.push(67);
 
     await this.send(sr, 4);
@@ -317,6 +318,7 @@ export default class ScientISST {
     this.clear();
 
     const cmd = bytesArray(chMask);
+    //@ts-ignore
     cmd.push(1);
 
     await this.send(cmd);
@@ -385,6 +387,7 @@ export default class ScientISST {
     let cmd = 0xa3; // 1  0  1  0  0  0  1  1 - Set dac output
 
     // Convert from voltage to raw:
+    //@ts-ignore
     const raw = int((voltage * 255) / 3.3);
 
     cmd |= raw << 8;
@@ -594,7 +597,7 @@ export default class ScientISST {
     return result;
   }
 
-  async send(data, nrOfBytes, log = false) {
+  async send(data, nrOfBytes = undefined, log = false) {
     nrOfBytes = nrOfBytes || data.length;
 
     const bytesDiff = nrOfBytes - data.length;

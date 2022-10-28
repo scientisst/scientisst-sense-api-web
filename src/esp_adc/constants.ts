@@ -14,7 +14,7 @@ export const ADC_UNIT_2 = 2  // SAR ADC 2.
 export const ADC_UNIT_BOTH = 3  // SAR ADC 1 and 2.
 export const ADC_UNIT_ALTER = 7  // SAR ADC 1 and 2 alternative mode.
 
-export const ADC_ATTEN_DB_0 = 0  // No input attenumation, ADC can measure up to approx. 800 mV. 
+export const ADC_ATTEN_DB_0 = 0  // No input attenuation, ADC can measure up to approx. 800 mV. 
 export const ADC_ATTEN_DB_2_5 = 1  // The input voltage of ADC will be attenuated, extending the range of measurement to up to approx. 1100 mV.
 export const ADC_ATTEN_DB_6 = 2  // The input voltage of ADC will be attenuated, extending the range of measurement to up to  approx. 1350 mV.
 export const ADC_ATTEN_DB_11 = 3  // The input voltage of ADC will be attenuated, extending the range of measurement to up to  approx. 2600 mV.

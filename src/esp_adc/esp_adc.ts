@@ -4,7 +4,16 @@ import * as constants from "./constants.js";
 import * as luts from "./lut_adc.js";
 
 export default class EspAdcCalChars {
-  constructor(buffer) {
+  private adcNum: number;
+  private atten: number;
+  private bitWidth: number;
+  private coeffA: number;
+  private coeffB: number;
+  private vref: number;
+  private lowCurve: number[] | 0;
+  private highCurve: number[] | 0;
+
+  constructor(buffer: any[]) {
     this.adcNum = intFromBytes(buffer.slice(0, 4));
     this.atten = intFromBytes(buffer.slice(4, 8));
     this.bitWidth = intFromBytes(buffer.slice(8, 12));
@@ -105,29 +114,29 @@ export default class EspAdcCalChars {
       this.atten == constants.ADC_ATTEN_DB_11 &&
       adcReading >= constants.LUT_LOW_THRESH
     ) {
-      const lutVoltage = calculateVoltageLut(
-        adc,
-        this.vref,
-        this.lowCurve,
-        this.highCurve
-      );
+      // const lutVoltage = calculateVoltageLut(
+      //   adc,
+      //   this.vref,
+      //   this.lowCurve,
+      //   this.highCurve
+      // );
 
-      if (adcReading <= constants.LUT_HIGH_THRESH) {
-        const linearVoltage = EspAdcCalChars.calculateVoltageLinear(
-          adcReading,
-          this.coeffA,
-          this.coeffB
-        );
+      // if (adcReading <= constants.LUT_HIGH_THRESH) {
+      //   const linearVoltage = EspAdcCalChars.calculateVoltageLinear(
+      //     adcReading,
+      //     this.coeffA,
+      //     this.coeffB
+      //   );
 
-        voltage = EspAdcCalChars.interpolateTwoPoints(
-          linearVoltage,
-          lutVoltage,
-          constants.LUT_ADC_STEP_SIZE,
-          adcReading - constants.LUT_LOW_THRESH
-        );
-      } else {
-        voltage = lutVoltage;
-      }
+      //   voltage = EspAdcCalChars.interpolateTwoPoints(
+      //     linearVoltage,
+      //     lutVoltage,
+      //     constants.LUT_ADC_STEP_SIZE,
+      //     adcReading - constants.LUT_LOW_THRESH
+      //   );
+      // } else {
+      //   voltage = lutVoltage;
+      // }
     } else {
       voltage = EspAdcCalChars.calculateVoltageLinear(
         adcReading,

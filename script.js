@@ -1,4 +1,4 @@
-import ScientISST from "./src/scientisst.js";
+import ScientISST from "./out/scientisst.js";
 
 const connectBthBtn = document.getElementById("connect-bth");
 const connectWsBtn = document.getElementById("connect-ws");
