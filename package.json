@@ -17,14 +17,8 @@
     "javascript",
     "web"
   ],
-  "scripts": {
-    "serve": "live-server"
-  },
   "bugs": {
     "url": "https://github.com/scientisst/scientisst-sense-api-web/issues"
   },
-  "homepage": "https://github.com/scientisst/scientisst-sense-api-web#readme",
-  "devDependencies": {
-    "live-server": "1.2.2"
-  }
+  "homepage": "https://github.com/scientisst/scientisst-sense-api-web#readme"
 }
