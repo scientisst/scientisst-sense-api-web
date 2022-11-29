@@ -1,30 +1,78 @@
 {
-  "name": "@scientisst/sense",
-  "version": "1.3.2",
-  "description": "The ScientISST SENSE Web API using Javascript",
-  "main": "src/scientisst.js",
-  "type": "module",
-  "author": "Afonso Raposo",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/scientisst/scientisst-sense-api-web.git"
-  },
-  "keywords": [
-    "scientisst",
-    "sense",
-    "api",
-    "javascript",
-    "web"
-  ],
-  "scripts": {
-    "serve": "live-server"
-  },
-  "bugs": {
-    "url": "https://github.com/scientisst/scientisst-sense-api-web/issues"
-  },
-  "homepage": "https://github.com/scientisst/scientisst-sense-api-web#readme",
-  "devDependencies": {
-    "live-server": "1.2.2"
-  }
+	"name": "@scientisst/sense",
+	"version": "2.0.0",
+	"description": "The ScientISST SENSE Web API using Javascript",
+	"contributors": [
+		{
+			"name": "Rui Maciel",
+			"email": "ruigouveiamaciel@gmail.com",
+			"url": "https://github.com/ruigouveiamaciel"
+		},
+		{
+			"name": "Afonso Raposo",
+			"email": "afonso@craposo.com",
+			"url": "https://afonsoraposo.com/"
+		}
+	],
+	"maintainers": [
+		{
+			"name": "Rui Maciel",
+			"email": "ruigouveiamaciel@gmail.com",
+			"url": "https://github.com/ruigouveiamaciel"
+		}
+	],
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/scientisst/scientisst-sense-api-web.git"
+	},
+	"keywords": [
+		"scientisst",
+		"sense",
+		"api",
+		"javascript",
+		"web"
+	],
+	"bugs": {
+		"url": "https://github.com/scientisst/scientisst-sense-api-web/issues"
+	},
+	"homepage": "https://github.com/scientisst/scientisst-sense-api-web#readme",
+	"scripts": {
+		"prettier": "prettier --check .",
+		"prettier:fix": "prettier --write .",
+		"prebuild": "rm -rf dist/*",
+		"build": "tsc"
+	},
+	"main": "dist/scientisst.js",
+	"types": "dist/scientisst.d.ts",
+	"exports": {
+		"./package.json": "./package.json",
+		".": {
+			"import": "./dist/scientisst.js",
+			"require": "./dist/scientisst.js"
+		},
+		"./future": {
+			"import": "./dist/future/index.js",
+			"require": "./dist/future/index.js"
+		}
+	},
+	"typesVersions": {
+		"*": {
+			"future": [
+				"dist/future/index.d.ts"
+			]
+		}
+	},
+	"devDependencies": {
+		"@trivago/prettier-plugin-sort-imports": "^3.4.0",
+		"@types/dom-serial": "^1.0.3",
+		"@typescript-eslint/eslint-plugin": "^5.41.0",
+		"@typescript-eslint/parser": "^5.41.0",
+		"eslint": "^8.26.0",
+		"eslint-config-prettier": "^8.5.0",
+		"eslint-plugin-import": "^2.26.0",
+		"eslint-plugin-prettier": "^4.2.1",
+		"prettier": "^2.7.1",
+		"typescript": "^4.8.4"
+	}
 }
