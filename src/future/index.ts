@@ -1,159 +1,47 @@
-export enum CHANNEL {
-	AI1 = 1,
-	AI2 = 2,
-	AI3 = 3,
-	AI4 = 4,
-	AI5 = 5,
-	AI6 = 6,
-	AX1 = 7,
-	AX2 = 8
-}
+import { ScientISSTAdcCharacteristics } from "./adcCharacteristics"
+import {
+	ADC_ATTEN,
+	ADC_BITS_WIDTH,
+	ADC_UNIT,
+	CHANNEL,
+	COMMUNICATION_MODE
+} from "./enums"
+import {
+	AlreadyConnectedException,
+	ConnectionFailedException,
+	ConnectionInProgressException,
+	ConnectionLostException,
+	IdleException,
+	InvalidSamplingRateException,
+	NoChannelsEnabledException,
+	NotConnectedException,
+	NotIdleException,
+	NotImplementedException,
+	NotSupportedException,
+	UserCancelledException
+} from "./exceptions"
+import { ScientISSTFrame } from "./frame"
 
-export enum COMMUNICATION_MODE {
-	BLUETOOTH,
-	WEB_SOCKET
-}
-
-export class ScientISSTException extends Error {
-	constructor(message: string) {
-		super(message)
-	}
-}
-
-export class ConnectionInProgressException extends ScientISSTException {
-	constructor() {
-		super("Connection with the device is already in progress")
-	}
-}
-
-export class NotImplementedException extends ScientISSTException {
-	constructor() {
-		super("Not implemented")
-	}
-}
-
-export class NotSupportedException extends ScientISSTException {
-	constructor() {
-		super(
-			"This communication mode is not supported in this browser or platform"
-		)
-	}
-}
-
-export class UserCancelledException extends ScientISSTException {
-	constructor() {
-		super("User cancelled the action")
-	}
-}
-
-export class ConnectionFailedException extends ScientISSTException {
-	constructor() {
-		super("Failed to connect to the device")
-	}
-}
-
-export class NotConnectedException extends ScientISSTException {
-	constructor() {
-		super("Device is not connected")
-	}
-}
-
-export class ConnectionLostException extends ScientISSTException {
-	constructor() {
-		super("Lost connection with device")
-	}
-}
-
-export class AlreadyConnectedException extends ScientISSTException {
-	constructor() {
-		super("Device is already connected")
-	}
-}
-
-export class IdleException extends ScientISSTException {
-	constructor() {
-		super("This action cannot be performed in idle state")
-	}
-}
-
-export class NotIdleException extends ScientISSTException {
-	constructor() {
-		super("This action can only be performed in idle state")
-	}
-}
-
-export class NoChannelsEnabledException extends ScientISSTException {
-	constructor() {
-		super("No channels are enabled")
-	}
-}
-
-export class InvalidSamplingRateException extends ScientISSTException {
-	constructor() {
-		super("Invalid sampling rate")
-	}
-}
-
-export enum ADC_UNIT {
-	ADC_UNIT_1 = 1,
-	ADC_UNIT_2 = 2,
-	ADC_UNIT_BOTH = 3,
-	ADC_UNIT_ALTER = 7
-}
-
-export enum ADC_ATTEN {
-	ADC_ATTEN_DB_0 = 0,
-	ADC_ATTEN_DB_2_5 = 1,
-	ADC_ATTEN_DB_6 = 2,
-	ADC_ATTEN_DB_11 = 3
-}
-
-export enum ADC_BITS_WIDTH {
-	ADC_BITS_WIDTH_9 = 1,
-	ADC_BITS_WIDTH_10 = 2,
-	ADC_BITS_WIDTH_11 = 3,
-	ADC_BITS_WIDTH_12 = 4
-}
-
-export class ScientISSTAdcCharacteristics {
-	public readonly adcNum: ADC_UNIT
-	public readonly adcAtten: ADC_ATTEN
-	public readonly adcBitWidth: ADC_BITS_WIDTH
-	public readonly coeffA: number
-	public readonly coeffB: number
-	public readonly vRef: number
-
-	constructor(
-		adcNum: ADC_UNIT,
-		adcAtten: ADC_ATTEN,
-		adcBitWidth: ADC_BITS_WIDTH,
-		coeffA: number,
-		coeffB: number,
-		vRef: number
-	) {
-		this.adcNum = adcNum
-		this.adcAtten = adcAtten
-		this.adcBitWidth = adcBitWidth
-		this.coeffA = coeffA
-		this.coeffB = coeffB
-		this.vRef = vRef
-	}
-}
-
-export class ScientISSTFrame {
-	public readonly ScientificISSTAdcCharacteristics: ScientISSTAdcCharacteristics
-	public readonly analog: Record<CHANNEL, number | null | undefined>
-	public readonly sequence: number
-
-	constructor(
-		ScientificISSTAdcCharacteristics: ScientISSTAdcCharacteristics,
-		analog: Record<CHANNEL, number | null | undefined>,
-		sequence: number
-	) {
-		this.ScientificISSTAdcCharacteristics = ScientificISSTAdcCharacteristics
-		this.analog = analog
-		this.sequence = sequence
-	}
+export {
+	AlreadyConnectedException,
+	ConnectionFailedException,
+	ConnectionInProgressException,
+	ConnectionLostException,
+	IdleException,
+	InvalidSamplingRateException,
+	NoChannelsEnabledException,
+	NotConnectedException,
+	NotIdleException,
+	NotImplementedException,
+	NotSupportedException,
+	UserCancelledException,
+	ADC_ATTEN,
+	ADC_BITS_WIDTH,
+	ADC_UNIT,
+	CHANNEL,
+	COMMUNICATION_MODE,
+	ScientISSTAdcCharacteristics,
+	ScientISSTFrame
 }
 
 export class ScientISST {
