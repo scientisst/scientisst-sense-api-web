@@ -2,7 +2,6 @@
 	"name": "@scientisst/sense",
 	"version": "2.0.0",
 	"description": "The ScientISST SENSE Web API using Javascript",
-	"main": "out/scientisst.js",
 	"contributors": [
 		{
 			"name": "Rui Maciel",
@@ -40,7 +39,29 @@
 	"homepage": "https://github.com/scientisst/scientisst-sense-api-web#readme",
 	"scripts": {
 		"prettier": "prettier --check .",
-		"prettier-fix": "prettier --write ."
+		"prettier:fix": "prettier --write .",
+		"prebuild": "rm -rf dist/*",
+		"build": "tsc"
+	},
+	"main": "dist/scientisst.js",
+	"types": "dist/scientisst.d.ts",
+	"exports": {
+		"./package.json": "./package.json",
+		".": {
+			"import": "./dist/scientisst.js",
+			"require": "./dist/scientisst.js"
+		},
+		"./future": {
+			"import": "./dist/future/index.js",
+			"require": "./dist/future/index.js"
+		}
+	},
+	"typesVersions": {
+		"*": {
+			"future": [
+				"dist/future/index.d.ts"
+			]
+		}
 	},
 	"devDependencies": {
 		"@trivago/prettier-plugin-sort-imports": "^3.4.0",
