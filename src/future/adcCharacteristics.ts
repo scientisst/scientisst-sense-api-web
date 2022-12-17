@@ -23,4 +23,52 @@ export class ScientISSTAdcCharacteristics {
 		this.coeffB = coeffB
 		this.vRef = vRef
 	}
+
+	public toJSON(): string {
+		return JSON.stringify({
+			adcNum: this.adcNum,
+			adcAtten: this.adcAtten,
+			adcBitWidth: this.adcBitWidth,
+			coeffA: this.coeffA,
+			coeffB: this.coeffB,
+			vRef: this.vRef
+		})
+	}
+
+	public static fromJSON(json: string): ScientISSTAdcCharacteristics {
+		const obj = JSON.parse(json)
+
+		if (obj.adcNum === undefined) {
+			throw new Error("adcNum is undefined")
+		}
+
+		if (obj.adcAtten === undefined) {
+			throw new Error("adcAtten is undefined")
+		}
+
+		if (obj.adcBitWidth === undefined) {
+			throw new Error("adcBitWidth is undefined")
+		}
+
+		if (obj.coeffA === undefined) {
+			throw new Error("coeffA is undefined")
+		}
+
+		if (obj.coeffB === undefined) {
+			throw new Error("coeffB is undefined")
+		}
+
+		if (obj.vRef === undefined) {
+			throw new Error("vRef is undefined")
+		}
+
+		return new ScientISSTAdcCharacteristics(
+			obj.adcNum,
+			obj.adcAtten,
+			obj.adcBitWidth,
+			obj.coeffA,
+			obj.coeffB,
+			obj.vRef
+		)
+	}
 }
