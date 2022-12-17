@@ -21,6 +21,7 @@ import {
 	UserCancelledException
 } from "./exceptions"
 import { ScientISSTFrame } from "./frame"
+import { framesToUtf16, utf16ToFrames } from "./utils"
 
 export {
 	AlreadyConnectedException,
@@ -41,7 +42,9 @@ export {
 	CHANNEL,
 	COMMUNICATION_MODE,
 	ScientISSTAdcCharacteristics,
-	ScientISSTFrame
+	ScientISSTFrame,
+	framesToUtf16,
+	utf16ToFrames
 }
 
 export class ScientISST {
