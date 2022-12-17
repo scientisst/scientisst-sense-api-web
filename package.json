@@ -41,7 +41,8 @@
 		"prettier": "prettier --check .",
 		"prettier:fix": "prettier --write .",
 		"prebuild": "rm -rf dist/*",
-		"build": "tsc"
+		"build": "tsc",
+		"prepublish": "yarn build"
 	},
 	"main": "dist/scientisst.js",
 	"types": "dist/scientisst.d.ts",
