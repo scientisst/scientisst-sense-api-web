@@ -1,4 +1,5 @@
 import { ScientISSTAdcCharacteristics } from "./adcCharacteristics"
+import { CHANNEL_SIZE } from "./constants"
 import {
 	ADC_ATTEN,
 	ADC_BITS_WIDTH,
@@ -44,7 +45,8 @@ export {
 	ScientISSTAdcCharacteristics,
 	ScientISSTFrame,
 	framesToUtf16,
-	utf16ToFrames
+	utf16ToFrames,
+	CHANNEL_SIZE
 }
 
 export class ScientISST {
