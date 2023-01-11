@@ -1,0 +1,12 @@
+prettier.config.js
+LICENSE
+tsconfig.json
+yarn.lock
+.prettierignore
+.gitignore
+.eslintrc.json
+.eslintignore
+src/
+node_modules/
+.vscode/
+.github/
