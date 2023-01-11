@@ -156,10 +156,26 @@ export class ScientISST {
 					throw new UserCancelledException()
 				}
 
+				// DO NOT REMOVE THIS TIMEOUT
+				// MacOS WILL NOT WORK WITHOUT IT
+				if (this.isMacOS()) {
+					await new Promise(resolve => {
+						setTimeout(resolve, 2000)
+					})
+				}
+
 				try {
 					await this.serialPort.open({
 						baudRate: 115200
 					})
+
+					// DO NOT REMOVE THIS TIMEOUT
+					// MacOS WILL NOT WORK WITHOUT IT
+					if (this.isMacOS()) {
+						await new Promise(resolve => {
+							setTimeout(resolve, 8000)
+						})
+					}
 				} catch {
 					await this.disconnect()
 					throw new ConnectionFailedException()
@@ -474,6 +490,14 @@ export class ScientISST {
 		this.idle = true
 	}
 
+	private isMacOS(): boolean {
+		return (
+			navigator &&
+			typeof navigator.userAgent === "string" &&
+			navigator.userAgent.includes("Mac OS")
+		)
+	}
+
 	private async send(data: Uint8Array) {
 		if (!this.connected) {
 			throw new NotConnectedException()
@@ -482,6 +506,11 @@ export class ScientISST {
 		switch (this.communicationMode) {
 			case COMMUNICATION_MODE.BLUETOOTH:
 				try {
+					// DO NOT REMOVE THIS CONSOLE.LOG
+					// IF REMOVED, IT WILL BREAK THE APPLICATION FOR MacOS (IN BTH)
+					if (this.isMacOS()) {
+						console.log("Sending...", data)
+					}
 					await this.writer.write(data)
 					await this.writer.ready
 				} catch {

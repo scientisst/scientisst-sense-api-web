@@ -1,6 +1,6 @@
 {
 	"name": "@scientisst/sense",
-	"version": "2.0.0",
+	"version": "2.0.1",
 	"description": "The ScientISST SENSE Web API using Javascript",
 	"contributors": [
 		{

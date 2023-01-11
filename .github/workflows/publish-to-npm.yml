@@ -1,19 +1,23 @@
-name: Publish to NPM
 on:
-    push:
-        tags:
-            - v[0-9]+.[0-9]+.[0-9]+
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
 jobs:
-    build:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v3
-            # Setup .npmrc file to publish to npm
-            - uses: actions/setup-node@v3
-              with:
-                  node-version: "16.x"
-                  registry-url: "https://registry.npmjs.org"
-            - run: npm install
-            - run: npm publish
-              env:
-                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  publish-to-npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: match-tag-to-package-version
+        id: match-tag-to-package-version
+        uses: geritol/match-tag-to-package-version@0.2.0
+        with:
+          TAG_PREFIX: v
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          registry-url: https://registry.npmjs.org/
+      - run: yarn
+      - run: yarn publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
