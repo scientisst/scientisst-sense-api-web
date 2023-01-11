@@ -156,9 +156,16 @@ export class ScientISST {
 					throw new UserCancelledException()
 				}
 
+				await new Promise(resolve => {
+					setTimeout(resolve, 2000)
+				})
+
 				try {
 					await this.serialPort.open({
 						baudRate: 115200
+					})
+					await new Promise(resolve => {
+						setTimeout(resolve, 8000)
 					})
 				} catch {
 					await this.disconnect()
@@ -482,6 +489,9 @@ export class ScientISST {
 		switch (this.communicationMode) {
 			case COMMUNICATION_MODE.BLUETOOTH:
 				try {
+					// DO NOT REMOVE THIS CONSOLE.LOG
+					// IF REMOVED, IT WILL BREAK THE APPLICATION FOR MacOS (IN BTH)
+					console.log("Sending...", data)
 					await this.writer.write(data)
 					await this.writer.ready
 				} catch {
