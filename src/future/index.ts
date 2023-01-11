@@ -156,17 +156,26 @@ export class ScientISST {
 					throw new UserCancelledException()
 				}
 
-				await new Promise(resolve => {
-					setTimeout(resolve, 2000)
-				})
+				// DO NOT REMOVE THIS TIMEOUT
+				// MacOS WILL NOT WORK WITHOUT IT
+				if (this.isMacOS()) {
+					await new Promise(resolve => {
+						setTimeout(resolve, 2000)
+					})
+				}
 
 				try {
 					await this.serialPort.open({
 						baudRate: 115200
 					})
-					await new Promise(resolve => {
-						setTimeout(resolve, 8000)
-					})
+
+					// DO NOT REMOVE THIS TIMEOUT
+					// MacOS WILL NOT WORK WITHOUT IT
+					if (this.isMacOS()) {
+						await new Promise(resolve => {
+							setTimeout(resolve, 8000)
+						})
+					}
 				} catch {
 					await this.disconnect()
 					throw new ConnectionFailedException()
@@ -481,6 +490,14 @@ export class ScientISST {
 		this.idle = true
 	}
 
+	private isMacOS(): boolean {
+		return (
+			navigator &&
+			typeof navigator.userAgent === "string" &&
+			navigator.userAgent.includes("Mac OS")
+		)
+	}
+
 	private async send(data: Uint8Array) {
 		if (!this.connected) {
 			throw new NotConnectedException()
@@ -491,7 +508,9 @@ export class ScientISST {
 				try {
 					// DO NOT REMOVE THIS CONSOLE.LOG
 					// IF REMOVED, IT WILL BREAK THE APPLICATION FOR MacOS (IN BTH)
-					console.log("Sending...", data)
+					if (this.isMacOS()) {
+						console.log("Sending...", data)
+					}
 					await this.writer.write(data)
 					await this.writer.ready
 				} catch {
